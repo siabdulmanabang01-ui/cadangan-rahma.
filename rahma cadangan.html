@@ -1,0 +1,372 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Kalkulator Risiko Syok Hipovolemik</title>
+<script src="https://unpkg.com/lucide@latest"></script>
+<style>
+  :root{
+    --grad: linear-gradient(135deg, #a78bfa, #ec4899, #60a5fa);
+    --bg:#fbfaff;
+    --card:#ffffff;
+    --muted:#6b7280;
+  }
+  body{
+    font-family:'Inter',sans-serif;
+    background:var(--bg);
+    color:#111;
+    margin:0;
+    transition:opacity 0.4s ease;
+  }
+  header{
+    background:var(--grad);
+    color:#fff;
+    padding:16px 24px;
+    box-shadow:0 4px 20px rgba(0,0,0,0.15);
+    display:flex;justify-content:space-between;align-items:center;
+  }
+  h1{font-size:20px;margin:0}
+  .tabs,.sub-tabs{
+    display:flex;justify-content:center;gap:8px;background:#f4f0ff;padding:10px;
+  }
+  .tab,.sub-tab{
+    border:none;border-radius:12px;padding:10px 18px;
+    cursor:pointer;background:#fff;color:var(--muted);
+    box-shadow:0 2px 6px rgba(0,0,0,0.05);
+    display:flex;align-items:center;gap:6px;transition:all 0.3s ease;
+  }
+  .tab.active,.sub-tab.active{
+    background:var(--grad);color:#fff;box-shadow:0 4px 12px rgba(0,0,0,0.2);
+  }
+  .container{max-width:950px;margin:20px auto;padding:0 16px;transition:opacity 0.4s ease;}
+  .card{
+    background:var(--card);border-radius:14px;padding:20px;
+    box-shadow:0 6px 20px rgba(0,0,0,0.08);
+  }
+  label{display:block;font-size:14px;margin-top:10px;color:var(--muted)}
+  input,textarea,select{
+    width:100%;padding:8px;border:1px solid #ddd;border-radius:8px;margin-top:5px;
+  }
+  .btn{
+    background:var(--grad);color:#fff;border:none;border-radius:10px;padding:10px 14px;
+    display:flex;align-items:center;gap:6px;cursor:pointer;margin-top:12px;
+    box-shadow:0 4px 10px rgba(167,139,250,0.3);transition:transform .2s;
+  }
+  .btn:hover{transform:scale(1.03)}
+  .hidden{display:none}
+  .burn-chart{
+    display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));
+    gap:8px;margin-top:10px;
+  }
+  .burn-area{
+    background:#fdf4ff;
+    border:1px solid #e9d5ff;
+    border-radius:10px;
+    padding:10px;text-align:center;
+    cursor:pointer;
+    transition:all .25s ease;
+  }
+  .burn-area.active{
+    background:#c084fc;color:#fff;border:none;
+    transform:scale(1.03);
+  }
+  .alert{
+    border-radius:10px;padding:10px;margin-top:12px;display:flex;
+    align-items:center;gap:8px;font-weight:500;
+  }
+  .low{background:#ecfdf5;border:1px solid #bbf7d0;color:#065f46;}
+  .medium{background:#fefce8;border:1px solid #fde68a;color:#92400e;}
+  .high{background:#fdf2f8;border:1px solid #fbcfe8;color:#9d174d;}
+  .reco{
+    background:rgba(99,102,241,0.06);
+    border-left:4px solid #a78bfa;
+    border-radius:10px;
+    padding:10px 14px;
+    margin-top:10px;
+    color:#3f3f46;
+    font-size:14px;
+  }
+  footer{text-align:center;margin:20px;color:var(--muted);font-size:13px;}
+</style>
+</head>
+<body>
+<header>
+  <h1>Kalkulator Risiko Syok Hipovolemik</h1>
+  <div>Prototipe Modern</div>
+</header>
+
+<div class="tabs">
+  <button class="tab active" id="tabCalc"><i data-lucide="activity"></i> Kalkulator</button>
+  <button class="tab" id="tabCase"><i data-lucide="file-text"></i> Kasus Klinis</button>
+</div>
+
+<div id="contentCalc" class="tab-content">
+  <div class="container card">
+    <h2>Perhitungan Cairan & Risiko Klinis</h2>
+
+    <label>Nama Pasien</label>
+    <input id="alphabet" placeholder="Masukkan nama...">
+
+    <label>Umur Pasien (Tahun)</label>
+    <input type="number" id="number" placeholder="25">
+
+    <label>Jenis Pasien</label>
+    <select id="patientType">
+      <option value="dewasa">Dewasa</option>
+      <option value="anak">Anak</option>
+    </select>
+
+    <h3 style="margin-top:12px;">Presentasi Luka Bakar</h3>
+    <div id="burnChart" class="burn-chart"></div>
+    <p><small>Total TBSA Terpilih: <b id="tbsaDisplay">0%</b></small></p>
+
+    <label>Berat Badan (kg)</label>
+    <input type="number" id="weight" placeholder="70" />
+
+    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+      <div>
+        <label>TD Sistolik (mmHg)</label>
+        <input type="number" id="td_sys" placeholder="120" />
+      </div>
+      <div>
+        <label>TD Diastolik (mmHg)</label>
+        <input type="number" id="td_dia" placeholder="80" />
+      </div>
+    </div>
+
+    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+      <div>
+        <label>Nadi (bpm)</label>
+        <input type="number" id="hr" placeholder="80" />
+      </div>
+      <div>
+        <label>Produksi Urine (ml/jam)</label>
+        <input type="number" id="urine" placeholder="35" />
+      </div>
+    </div>
+
+    <label>Status Akral</label>
+    <select id="akral">
+      <option value="hangat">Hangat, Merah, Kering</option>
+      <option value="dingin">Dingin, Pucat, Basah (Akral Dingin)</option>
+    </select>
+
+    <button class="btn" id="calcBtn"><i data-lucide="calculator"></i> Hitung</button>
+
+    <div id="resultArea" style="margin-top:14px;font-weight:500"></div>
+    <div id="riskArea"></div>
+    <div id="recoArea"></div>
+  </div>
+</div>
+
+<div id="contentCase" class="tab-content hidden">
+  <div class="sub-tabs">
+    <button class="sub-tab active" id="subAdult"><i data-lucide="user"></i> Dewasa</button>
+    <button class="sub-tab" id="subChild"><i data-lucide="baby"></i> Anak</button>
+  </div>
+
+  <div id="caseAdult" class="container card">
+    <h2>Kasus Klinis Dewasa</h2>
+    <p>Seorang pria 35 tahun datang dengan luka bakar pada dada dan paha kiri. TD 95/60 mmHg, nadi 120 bpm, diuresis 25 ml/jam.</p>
+    <label>Nama Pasien</label><input />
+    <label>Berat Badan (kg)</label><input type="number" id="adultWeight" />
+    <label>%TBSA</label><input type="number" id="adultTbsa" />
+    <label>TD Sistolik (mmHg)</label><input type="number" id="adultTd" />
+    <label>Nadi (bpm)</label><input type="number" id="adultHr" />
+    <button class="btn" id="adultCalc"><i data-lucide="calculator"></i> Hitung Jawaban</button>
+    <div id="adultResult"></div>
+    <div id="adultRisk"></div>
+    <div id="adultReco"></div>
+  </div>
+
+  <div id="caseChild" class="container card hidden">
+    <h2>Kasus Klinis Anak</h2>
+    <p>Anak laki-laki 7 tahun mengalami luka bakar pada dada dan perut. TD 90/55 mmHg, nadi 130 bpm, diuresis 20 ml/jam.</p>
+    <label>Nama Pasien</label><input />
+    <label>Berat Badan (kg)</label><input type="number" id="childWeight" />
+    <label>%TBSA</label><input type="number" id="childTbsa" />
+    <label>TD Sistolik (mmHg)</label><input type="number" id="childTd" />
+    <label>Nadi (bpm)</label><input type="number" id="childHr" />
+    <button class="btn" id="childCalc"><i data-lucide="calculator"></i> Hitung Jawaban</button>
+    <div id="childResult"></div>
+    <div id="childRisk"></div>
+    <div id="childReco"></div>
+  </div>
+</div>
+
+<footer>© 2025 kalkulator medis — Nur Rahma Kamilasari</footer>
+
+<script>
+  lucide.createIcons();
+
+  // Tab Navigation
+  const tabCalc=document.getElementById("tabCalc");
+  const tabCase=document.getElementById("tabCase");
+  const contentCalc=document.getElementById("contentCalc");
+  const contentCase=document.getElementById("contentCase");
+  tabCalc.addEventListener("click",()=>switchTab(false));
+  tabCase.addEventListener("click",()=>switchTab(true));
+
+  function switchTab(toCase){
+    document.body.style.opacity='0';
+    setTimeout(()=>{
+      if(toCase){
+        tabCase.classList.add("active");
+        tabCalc.classList.remove("active");
+        contentCase.classList.remove("hidden");
+        contentCalc.classList.add("hidden");
+      }else{
+        tabCalc.classList.add("active");
+        tabCase.classList.remove("active");
+        contentCalc.classList.remove("hidden");
+        contentCase.classList.add("hidden");
+      }
+      document.body.style.opacity='1';
+    },200);
+  }
+
+  const subAdult=document.getElementById("subAdult");
+  const subChild=document.getElementById("subChild");
+  const caseAdult=document.getElementById("caseAdult");
+  const caseChild=document.getElementById("caseChild");
+  subAdult.addEventListener("click",()=>switchSub(false));
+  subChild.addEventListener("click",()=>switchSub(true));
+  function switchSub(toChild){
+    caseAdult.classList.toggle("hidden",toChild);
+    caseChild.classList.toggle("hidden",!toChild);
+    subAdult.classList.toggle("active",!toChild);
+    subChild.classList.toggle("active",toChild);
+  }
+
+  const burnChart=document.getElementById("burnChart");
+  const tbsaDisplay=document.getElementById("tbsaDisplay");
+  
+  const adultAreas = {
+    "Kepala & Leher": 9, "Dada": 9, "Perut": 9, "Punggung Atas": 9, "Punggung Bawah": 9,
+    "Lengan Ka (D)": 4.5, "Lengan Ka (B)": 4.5, "Lengan Ki (D)": 4.5, "Lengan Ki (B)": 4.5,
+    "Tungkai Ka (D)": 9, "Tungkai Ka (B)": 9, "Tungkai Ki (D)": 9, "Tungkai Ki (B)": 9, "Genitalia": 1
+  };
+
+  const getLundBrowder = (age) => {
+    if (age < 1) return { kepala: 19, kaki: 13 };
+    if (age < 5) return { kepala: 17, kaki: 13 };
+    if (age < 10) return { kepala: 13, kaki: 14 };
+    if (age < 15) return { kepala: 11, kaki: 16 };
+    return { kepala: 9, kaki: 18 };
+  };
+
+  let selectedAreas={};
+
+  function renderBurnAreas(){
+    burnChart.innerHTML="";
+    const type=document.getElementById("patientType").value;
+    const age=parseFloat(document.getElementById("number").value) || 0;
+    
+    let areas = {};
+    if(type === 'dewasa') {
+      areas = adultAreas;
+    } else {
+      const lb = getLundBrowder(age);
+      areas = {
+        [`Kepala (${lb.kepala}%)`]: lb.kepala, "Dada": 9, "Perut": 9, "Punggung Atas": 9, "Punggung Bawah": 9,
+        "Lengan Kanan": 9, "Lengan Kiri": 9, [`Tungkai Ka (${lb.kaki}%)`]: lb.kaki, [`Tungkai Ki (${lb.kaki}%)`]: lb.kaki, "Genitalia": 1
+      };
+    }
+
+    Object.entries(areas).forEach(([name,val])=>{
+      const div=document.createElement("div");
+      div.className="burn-area";
+      div.innerHTML=`${name}<br><small>${val}%</small>`;
+      div.addEventListener("click",()=>{
+        if(selectedAreas[name]) delete selectedAreas[name];
+        else selectedAreas[name]=val;
+        div.classList.toggle("active");
+        updateTBSA();
+      });
+      burnChart.appendChild(div);
+    });
+  }
+
+  function updateTBSA(){
+    const total=Object.values(selectedAreas).reduce((a,b)=>a+b,0);
+    tbsaDisplay.textContent=total.toFixed(1)+"%";
+  }
+
+  document.getElementById("patientType").addEventListener("change",()=>{
+    selectedAreas={};
+    renderBurnAreas();
+    updateTBSA();
+  });
+  document.getElementById("number").addEventListener("input", renderBurnAreas);
+
+  renderBurnAreas();
+
+  function evaluateRisk(tbsa, td, hr, urine, akral, target, recoTarget){
+    let riskLevel="low";
+    // Kriteria diperketat dengan urine dan akral
+    if(tbsa>=20 || td<90 || hr>120 || akral === 'dingin' || (urine > 0 && urine < 30)) riskLevel="high";
+    else if(tbsa>=10 || (td>=90 && td<=100) || (hr>=100 && hr<=120)) riskLevel="medium";
+
+    let icon="check-circle", text="Risiko rendah syok hipovolemik", cls="low", reco="";
+    
+    // Keterangan Nadi Takikardia
+    let hrNote = hr > 100 ? " (Takikardia)" : "";
+
+    if(riskLevel==="medium"){
+      icon="alert-circle"; text="Risiko sedang syok hipovolemik" + hrNote; cls="medium";
+      reco="<div class='reco'><i data-lucide='stethoscope'></i> Pantau tanda vital tiap 30 menit, pasang infus, dan catat diuresis secara berkala.</div>";
+    }
+    if(riskLevel==="high"){
+      icon="alert-triangle"; text="Risiko tinggi syok hipovolemik" + hrNote; cls="high";
+      reco="<div class='reco'><i data-lucide='thermometer'></i> Lakukan resusitasi cairan segera, pasang dua jalur IV besar, monitor urine output secara ketat, dan siapkan rujukan.</div>";
+    }
+    if(riskLevel==="low"){
+      reco="<div class='reco'><i data-lucide='clipboard-check'></i> Lanjutkan observasi ketat dan hidrasi oral sesuai kebutuhan pasien.</div>";
+    }
+    document.getElementById(target).innerHTML=`<div class='alert ${cls}'><i data-lucide='${icon}'></i> ${text}</div>`;
+    document.getElementById(recoTarget).innerHTML=reco;
+    lucide.createIcons();
+  }
+
+  function calcFluid(weight, tbsa, type){
+    return (type==="dewasa"?4:3)*weight*tbsa;
+  }
+
+  document.getElementById("calcBtn").addEventListener("click",()=>{
+    const w=+weight.value||0;
+    const type=patientType.value;
+    const tbsa=parseFloat(tbsaDisplay.textContent)||0;
+    const td_sys=+document.getElementById("td_sys").value||0;
+    const hr=+document.getElementById("hr").value||0;
+    const urine=+document.getElementById("urine").value||0;
+    const akralValue=document.getElementById("akral").value;
+    
+    const total=calcFluid(w,tbsa,type);
+    resultArea.innerHTML=`
+      <div style="border-bottom:1px solid #eee; padding-bottom:8px; margin-bottom:8px;">
+        Interpretasi Nadi: <b>${hr > 100 ? 'Takikardia' : 'Normal'}</b>
+      </div>
+      <div>Total cairan 24 jam: <b>${total.toLocaleString()} ml</b></div>
+      <div>0–8 jam pertama: <b>${(total/2).toLocaleString()} ml</b></div>
+      <div>8–24 jam berikutnya: <b>${(total/2).toLocaleString()} ml</b></div>`;
+    
+    evaluateRisk(tbsa, td_sys, hr, urine, akralValue, "riskArea", "recoArea");
+  });
+
+  document.getElementById("adultCalc").addEventListener("click",()=>{
+    const w=+adultWeight.value||0,t=+adultTbsa.value||0,td=+adultTd.value||0,hr=+adultHr.value||0;
+    const total=calcFluid(w,t,"dewasa");
+    adultResult.innerHTML=`<div><b>Total cairan 24 jam:</b> ${total.toLocaleString()} ml</div>`;
+    evaluateRisk(t,td,hr,0,'hangat',"adultRisk","adultReco");
+  });
+
+  document.getElementById("childCalc").addEventListener("click",()=>{
+    const w=+childWeight.value||0,t=+childTbsa.value||0,td=+childTd.value||0,hr=+childHr.value||0;
+    const total=calcFluid(w,t,"anak");
+    childResult.innerHTML=`<div><b>Total cairan 24 jam:</b> ${total.toLocaleString()} ml</div>`;
+    evaluateRisk(t,td,hr,0,'hangat',"childRisk","childReco");
+  });
+</script>
+</body>
+</html>
